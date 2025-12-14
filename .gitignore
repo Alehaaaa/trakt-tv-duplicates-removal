@@ -1,9 +1,6 @@
-# Created by .ignore support plugin (hsz.mobi)
-### Example user template template
-### Example user template
-
-# IntelliJ project files
-.idea
-*.iml
-out
-gen
+# Created by venv; see https://docs.python.org/3/library/venv.html
+trakt_auth.json
+.DS_Store
+.env
+pyvenv.cfg
+__pycache__
