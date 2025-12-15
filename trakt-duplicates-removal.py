@@ -135,17 +135,17 @@ def remove_duplicate(history, type):
         
         if entry_id in entries:
             if not KEEP_PER_DAY or watched_date == entries[entry_id]:
-                duplicates.append(entry['id'])
+                duplicates.append(entry)
         else:
             entries[entry_id] = watched_date
 
     if duplicates:
-        response = make_authenticated_request(f'{TRAKT_API}/sync/history/remove', method='POST', data={'ids': duplicates})
-        if response.status_code == 200:
-            return len(duplicates), len(entries)
-        else:
+        response = make_authenticated_request(f'{TRAKT_API}/sync/history/remove', method='POST', data={'ids': [entry['id'] for entry in duplicates]})
+        if response.status_code != 200:
             print(f"❌ Failed to remove duplicates. Response: {response.status_code} - {response.text}")
-    return 0, len(entries)
+        else:
+            return {"length":len(duplicates), "duplicates":duplicates}, len(entries)
+    return {"length":0, "duplicates":[]}, len(entries)
 
 if __name__ == '__main__':
     token_data = load_token()
@@ -156,14 +156,20 @@ if __name__ == '__main__':
     counts = {}
     
     for type in TYPES:
-        print(f"🔍 Scanning {type}...")
+        # print(f"🔍 Scanning {type}...")
         history = make_authenticated_request(f'{TRAKT_API}/users/{USERNAME}/history/{type}?page=1&limit=100000').json()
         removed[type], counts[type] = remove_duplicate(history, type)
 
-    if any(removed.values()):
-        removed = ' and '.join([f"{v} {k}" for k, v in removed.items() if v > 0])
-        counts = ' and '.join([f"{counts[k]} {k}" for k in TYPES])
-        print(f"🗑️ Removed {removed} duplicates from {counts}.")
+    if any(x['length'] for x in removed.values()):
+        types = [f"{v['length']} {k[:-1]+'s' if v['length'] > 1 else k[:-1]}" for k, v in removed.items() if v['length'] > 0]
+        removed_text = ' and '.join(types)
+        print(f"🗑️ Removed {removed_text} duplicate{'s' if sum(x['length'] for x in removed.values()) > 1 else ''}:")
+        for type, rems in removed.items():
+            if rems['length'] > 0:
+                if len(types) > 1: print(f"{type.title()}:")
+                content = list(set([x.get('show', x.get('movie')).get('title') for x in rems['duplicates']]))
+                text = ', '.join(content)
+                print(f"  {text}"[:50] + '...' if len(text) > 50 else f"  {text}")
     else:
         counts = ' and '.join([f"{counts[k]} {k}" for k in TYPES])
-        print(f"👍 No duplicates found in {counts}.")
+        print(f"👍 No duplicates in {counts}.")
