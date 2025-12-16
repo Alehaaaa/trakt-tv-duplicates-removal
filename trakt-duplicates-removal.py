@@ -143,9 +143,7 @@ def remove_duplicate(history, type):
         response = make_authenticated_request(f'{TRAKT_API}/sync/history/remove', method='POST', data={'ids': [entry['id'] for entry in duplicates]})
         if response.status_code != 200:
             print(f"❌ Failed to remove duplicates. Response: {response.status_code} - {response.text}")
-        else:
-            return {"length":len(duplicates), "duplicates":duplicates}, len(entries)
-    return {"length":0, "duplicates":[]}, len(entries)
+    return {"length":len(duplicates), "duplicates":duplicates}, len(entries)
 
 if __name__ == '__main__':
     token_data = load_token()
