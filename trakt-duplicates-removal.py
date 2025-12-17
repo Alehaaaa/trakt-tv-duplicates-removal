@@ -13,9 +13,11 @@ load_dotenv()
 # Constants
 TRAKT_API = 'https://api.trakt.tv'
 TOKEN_FILE = 'trakt_auth.json'
+
 CLIENT_ID = os.getenv('CLIENT_ID') or 'your_client_id'
 CLIENT_SECRET = os.getenv('CLIENT_SECRET') or 'your_client_secret'
 USERNAME = os.getenv('USERNAME') or 'your_username'
+
 KEEP_PER_DAY = False  # Set to True to keep one entry per day
 
 
